@@ -73,6 +73,10 @@ B2SHARE_RECORDS_REST_ENDPOINTS = dict(
         record_serializers={
             'application/json': ('b2share.modules.records.serializers'
                                  ':json_v1_response'),
+            'application/x-dc+xml': (
+                'b2share.modules.records.serializers:dc_v1_response'),
+            'application/x-datacite+xml': (
+                'b2share.modules.records.serializers:datacite_v31_response'),
         },
         search_serializers={
             'application/json': ('b2share.modules.records.serializers'

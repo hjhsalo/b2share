@@ -28,9 +28,14 @@ Responsible for creating a HTTP response given the output of a serializer.
 
 from __future__ import absolute_import, print_function
 
-from flask import current_app, url_for, g
+from flask import current_app, url_for, g, abort
 from invenio_records_rest.serializers.json import JSONSerializer as \
     InvenioJSONSerializer
+from invenio_records_rest.serializers.dc import DublinCoreSerializer as \
+    InvenioDublinCoreSerializer
+from invenio_records_rest.serializers.datacite import DataCite31Serializer as \
+    InvenioDataCite31Serializer
+from invenio_pidstore.providers.datacite import DataCiteProvider
 
 from ..search import _in_draft_request
 from ..links import RECORD_BUCKET_RELATION_TYPE
@@ -63,6 +68,34 @@ def record_responsify(serializer, mimetype):
             response.headers.add('Link', link)
         return response
     return view
+
+
+class DublinCoreSerializer(InvenioDublinCoreSerializer):
+    """B2SHARE Dublin Core serializer for records."""
+
+    def preprocess_record(self, pid, record, links_factory=None):
+        g.record = record
+        return super(DublinCoreSerializer, self).preprocess_record(
+            pid, record, links_factory=links_factory)
+
+
+class DataCite31Serializer(InvenioDataCite31Serializer):
+    """B2SHARE DataCite31 serializer for records."""
+
+    def preprocess_record(self, pid, record, links_factory=None):
+        g.record = record
+
+        # Check that there is a DOI in the record. 
+        # Otherwise the serializer will fail as DOI is required
+        # by Datacite Metadata Schema V3.1.
+        doi_list = [DataCiteProvider.get(d.get('value'))
+                for d in record['_pid']
+                if d.get('type') == 'DOI']
+        if not doi_list:
+            return abort(406, "Record cannot be exported in Datacite format since record doesn't have a DOI assigned to it.")
+
+        return super(DataCite31Serializer, self).preprocess_record(
+            pid, record, links_factory=links_factory)
 
 
 class JSONSerializer(InvenioJSONSerializer):
