@@ -30,6 +30,8 @@ from invenio_records_rest.serializers.dc import DublinCoreSerializer as \
     InvenioDublinCoreSerializer
 from invenio_records_rest.serializers.datacite import DataCite31Serializer as \
     InvenioDataCite31Serializer
+from invenio_records_rest.serializers.datacite import OAIDataCiteSerializer as \
+    InvenioOAIDataCiteSerializer
 
 from dojson.contrib.to_marc21 import to_marc21
 from invenio_marc21.serializers.marcxml import MARCXMLSerializer as \
@@ -43,21 +45,27 @@ from b2share.modules.records.serializers.schemas.datacite import DataCiteSchemaV
 from b2share.modules.records.serializers.response import record_responsify, \
     JSONSerializer, DataCite31Serializer, DublinCoreSerializer
 
-json_v1 = JSONSerializer(RecordSchemaJSONV1)
-json_v1_response = record_responsify(json_v1, 'application/json')
-json_v1_search = search_responsify(json_v1, 'application/json')
-
-# OAI-PMH record serializers.
-dc_v1 = InvenioDublinCoreSerializer(RecordSchemaDublinCoreV1, replace_refs=True)
-marcxml_v1 = InvenioMARCXMLSerializer(to_marc21, schema_class=RecordSchemaMarcXMLV1, replace_refs=True)
-oaipmh_oai_dc = dc_v1.serialize_oaipmh
-oaipmh_marc21_v1 = marcxml_v1.serialize_oaipmh
-
-# DOI record serializers.
-datacite_v31 = InvenioDataCite31Serializer(DataCiteSchemaV1, replace_refs=True)
+# REST API record serializers
+json_v1_b2share = JSONSerializer(RecordSchemaJSONV1)
+json_v1_response = record_responsify(json_v1_b2share, 'application/json')
+json_v1_search = search_responsify(json_v1_b2share, 'application/json')
 
 dc_v1_b2share = DublinCoreSerializer(RecordSchemaDublinCoreV1, replace_refs=True)
 dc_v1_response = record_responsify(dc_v1_b2share, 'application/x-dc+xml')
 
 datacite_v31_b2share = DataCite31Serializer(DataCiteSchemaV1, replace_refs=True)
 datacite_v31_response = record_responsify(datacite_v31_b2share, 'application/x-datacite+xml')
+
+# OAI-PMH record serializers
+dc_v1 = InvenioDublinCoreSerializer(RecordSchemaDublinCoreV1, replace_refs=True)
+marcxml_v1 = InvenioMARCXMLSerializer(to_marc21, schema_class=RecordSchemaMarcXMLV1, replace_refs=True)
+datacite_v31 = InvenioDataCite31Serializer(DataCiteSchemaV1, replace_refs=True)
+oai_datacite = InvenioOAIDataCiteSerializer(
+    serializer=datacite_v31,
+    datacentre='EUDAT.B2SHARE',
+)
+
+oaipmh_oai_dc = dc_v1.serialize_oaipmh
+oaipmh_marc21_v1 = marcxml_v1.serialize_oaipmh
+oaipmh_datacite_v31 = datacite_v31.serialize_oaipmh
+oaipmh_oai_datacite = oai_datacite.serialize_oaipmh

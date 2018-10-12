@@ -39,8 +39,12 @@ class IdentifierSchema(Schema):
     """Identifier schema."""
 
     def get_doi(self, pids):
+        # Use '(:tba)' in case a DOI is not present.
+        # Fixes OAI-PMH exporting of records that don't have a DOI.
+        # It would be better to skip the record altogether
+        # but couldn't find a nice way to do it without customizing much.
         p = [p['value'] for p in pids if p['type'] == 'DOI']
-        return str(p[0]) if p else None
+        return str(p[0]) if p else '(:tba)'
 
     identifier = fields.Method('get_doi')
     identifierType = fields.Constant('DOI')

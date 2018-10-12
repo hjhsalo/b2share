@@ -71,8 +71,8 @@ B2SHARE_RECORDS_REST_ENDPOINTS = dict(
         record_class='b2share.modules.records.api:B2ShareRecord',
         search_class=B2ShareRecordsSearch,
         record_serializers={
-            'application/json': ('b2share.modules.records.serializers'
-                                 ':json_v1_response'),
+            'application/json': (
+                'b2share.modules.records.serializers:json_v1_response'),
             'application/x-dc+xml': (
                 'b2share.modules.records.serializers:dc_v1_response'),
             'application/x-datacite+xml': (
@@ -115,8 +115,8 @@ B2SHARE_DEPOSIT_REST_ENDPOINTS = dict(
         max_result_window=10000,
         default_media_type='application/json',
         record_serializers={
-            'application/json': ('b2share.modules.deposit.serializers'
-                                 ':json_v1_response'),
+            'application/json': (
+                'b2share.modules.deposit.serializers:json_v1_response'),
         },
         search_serializers={
             'application/json': (
@@ -271,6 +271,21 @@ OAISERVER_METADATA_FORMATS = {
         'schema': 'http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd',
         'serializer': 'b2share.modules.records.serializers.oaipmh_marc21_v1',
     },
+    # 'datacite': {
+    #     'namespace': 'http://datacite.org/schema/kernel-3',
+    #     'schema': 'http://schema.datacite.org/meta/kernel-3/metadata.xsd',
+    #     'serializer': 'b2share.modules.records.serializers.oaipmh_datacite_v31',
+    # },
+    # 'datacite3': {
+    #     'namespace': 'http://datacite.org/schema/kernel-3',
+    #     'schema': 'http://schema.datacite.org/meta/kernel-3/metadata.xsd',
+    #     'serializer': 'b2share.modules.records.serializers.oaipmh_datacite_v31',
+    # },
+    # 'oai_datacite': {
+    #     'namespace': 'http://datacite.org/schema/kernel-3',
+    #     'schema': 'http://schema.datacite.org/meta/kernel-3/metadata.xsd',
+    #     'serializer': 'b2share.modules.records.serializers.oaipmh_oai_datacite',
+    # },
 }
 
 # Cache

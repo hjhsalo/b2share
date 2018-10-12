@@ -37,6 +37,8 @@ from invenio_records_rest.serializers.datacite import DataCite31Serializer as \
     InvenioDataCite31Serializer
 from invenio_pidstore.providers.datacite import DataCiteProvider
 
+from lxml import etree
+
 from ..search import _in_draft_request
 from ..links import RECORD_BUCKET_RELATION_TYPE
 from b2share.modules.deposit.links import deposit_links_factory
@@ -96,6 +98,22 @@ class DataCite31Serializer(InvenioDataCite31Serializer):
 
         return super(DataCite31Serializer, self).preprocess_record(
             pid, record, links_factory=links_factory)
+
+    def serialize_oaipmh(self, pid, record):
+        """Serialize a single record for OAI-PMH."""
+
+        # Check that there is a DOI in the record.
+        # Otherwise the serializer will fail as DOI is required
+        # by Datacite Metadata Schema V3.1.
+        doi_list = [DataCiteProvider.get(d.get('value'))
+                for d in record['_source']['_pid']
+                if d.get('type') == 'DOI']
+        if not doi_list:
+            # If no DOI was found return empty lxml.etree.Element
+            # which serializes to '<none></none>'
+            return etree.Element('none')
+
+        return super(DataCite31Serializer, self).serialize_oaipmh(pid, record)
 
 
 class JSONSerializer(InvenioJSONSerializer):
