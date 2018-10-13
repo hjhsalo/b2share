@@ -28,16 +28,13 @@ import { CommunityAdmin } from './components/community_admin.jsx'
 // TODO: edit records: open enums (rename enum to options?)
 // TODO: do memory profile
 
-// TODO: Supply 'url' and 'siteId' via environmental variables
-// If no values are submitted DISABLE PiwikiReactRouter
-// Inflate environmental variables with help of webpack.
 // Set environmental variables in Dockerfile
-// Make sure that PiwikiReactRouter is DISABLED by default.
-// Set environmental variables in webpack.
-const piwik = PiwikReactRouter({
-    url: 'matomo.rahtiapp.fi',
-    siteId: 8
-});
+const piwik = process.env.B2SHARE_WEBUI_MATOMO_URL && process.env.B2SHARE_WEBUI_MATOMO_SITEID ?
+    PiwikReactRouter({
+        url: process.env.B2SHARE_WEBUI_MATOMO_URL,
+        siteId: process.env.B2SHARE_WEBUI_MATOMO_SITEID
+    }) : false;
+
 
 const AppFrame = React.createClass({
     getInitialState() {
@@ -101,7 +98,7 @@ function testNewPage(prev, next) {
 
 
 const router = (
-    <Router history={piwik.connectToHistory(browserHistory)}>
+    <Router history={ piwik ? (piwik.connectToHistory(browserHistory)) : (browserHistory) }>
         <Route path="/" component={AppFrame} onChange={testNewPage}>
             <IndexRoute component={HomeRoute} />
 
