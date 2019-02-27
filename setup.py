@@ -250,6 +250,12 @@ setup(
             'b2share.modules.users.permissions:assign_role_need',
             'search_accounts_need = '
             'b2share.modules.users.permissions:search_accounts_need',
+            'search_accounts_need = '
+            'b2share.modules.users.permissions:service_account_need',
+        ],
+        'invenio_access.system_roles': [
+            'service_account ='
+            'b2share.modules.users.roles:service_account',
         ],
     },
     extras_require=extras_require,

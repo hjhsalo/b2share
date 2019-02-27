@@ -144,6 +144,7 @@ function ajaxWithToken(ajaxObject) {
 
     const token = getSessionUserToken();
     if (token && ajaxObject.url.startsWith("http")) {
+        debugger;
         ajaxObject.headers = ajaxObject.headers || {};
         ajaxObject.headers['Authorization'] = 'B2SHARE ' + token;
     }
@@ -154,6 +155,7 @@ function ajaxWithToken(ajaxObject) {
         if (ajaxObject.url.startsWith("http")) {
             var token = request.getResponseHeader('x-token');
             if (token && token.startsWith(prefix)) {
+                debugger;
                 token = token.substring(prefix.length +1, token.length);
                 setSessionUserToken(token);
             }

@@ -709,7 +709,7 @@ export const FileRecordRow = React.createClass({
                             style={{marginLeft:'0.5em', fontSize:10}} aria-hidden="true"/>
                         <span className={"glyphicon glyphicon-file"}
                             style={{marginLeft:'0.5em', fontSize:10}} aria-hidden="true"/>
-                        <a style={{display:'inline-block', marginLeft:'0.5em'}} onClick={e => e.stopPropagation()}
+                        <a download style={{display:'inline-block', marginLeft:'0.5em'}} onClick={e => e.stopPropagation()}
                             href={file.url}>{file.key || file.name}</a>
                         { this.props.showDownloads && file.downloads >= 0 ?
                             <span className="fileDownloadBadge" style={{marginLeft:'1em', fontSize:11, color: '#888'}}>

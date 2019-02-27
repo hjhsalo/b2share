@@ -38,12 +38,14 @@ from b2share.modules.communities.api import (
 from invenio_access.permissions import (
     ParameterizedActionNeed, superuser_access
 )
-from flask_principal import ActionNeed, UserNeed
+from flask_principal import ActionNeed, UserNeed, RoleNeed
 
 
 search_accounts_need = ActionNeed('accounts-search')
 """Need enabling to list all user accounts."""
 
+service_account_need = RoleNeed('service_account')
+"""Need enabling to generate tokens for users by 3rd party service."""
 
 def assign_role_need_factory(role=None, community=None):
     """Create the need for assigning roles in a community.
@@ -127,3 +129,13 @@ class AccountUpdatePermission(StrictDynamicPermission):
         # account owner can't update his account for now as we only allow
         # account acticate/deactivate operations. This can change later if
         # we allow custom user name or other properties.
+
+
+class TokenCreatePermission(StrictDynamicPermission):
+    """Permission enabling to generate tokens for users by 3rd party service.
+
+    """
+
+    def __init__(self) :
+        """Constructor."""
+        super(TokenCreatePermission, self).__init__(service_account_need)

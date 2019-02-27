@@ -146,6 +146,7 @@ const Record = React.createClass({
 
         return (
             <div>
+                
                 <Versions recordID={record.get('id')} versions={record.get('versions')}/>
 
                 <div className="row">
@@ -219,6 +220,7 @@ const Record = React.createClass({
             fileComponent = <div>No files available.</div>;
         } else {
             const fileRecordRowFn = f => {
+                // debugger;
                 let b2noteWidget = false;
                 if (b2noteUrl) {
                     const showB2NoteWindow = e => this.setState({showB2NoteWindow: true});

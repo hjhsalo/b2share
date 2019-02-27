@@ -20,12 +20,13 @@
 
 from __future__ import absolute_import
 
-from flask import Blueprint, abort, request, jsonify
+from flask import Blueprint, abort, request, jsonify, current_app
 from flask_login import current_user
 from flask_security.decorators import auth_required
 
 from invenio_db import db
 from invenio_rest import ContentNegotiatedMethodView
+from invenio_oauthclient.handlers import token_getter
 from invenio_oauth2server import current_oauth2server
 from invenio_oauth2server.models import Token
 from flask_security.views import logout
@@ -72,6 +73,10 @@ def _get_token(token_id, is_personal=True, is_internal=False):
     return token
 
 
+def _check_user_exists(email):
+    return True
+
+
 class UserTokenList(ContentNegotiatedMethodView):
 
     def __init__(self, *args, **kwargs):
@@ -96,9 +101,25 @@ class UserTokenList(ContentNegotiatedMethodView):
     @auth_required('token', 'session')
     def post(self, **kwargs):
         token_name = request.get_json().get('token_name')
+        b2access_token = requests.get_json().get('b2access_token')
+        eudat_id = requests.get_json().get('eudat_id')
+        user_email = requests.get_json().get('email')
+
         if not token_name:
             abort(400)
 
+        if b2access_token:
+            # TODO: Check user's email with B2ACCESS token
+            pass
+
+        if eudat_id:
+            # TODO: Check user's email by EUDAT_ID
+            pass
+
+        if user_email:
+            
+            pass
+        
         scopes = current_oauth2server.scope_choices()
         token = Token.create_personal(
             token_name, current_user.get_id(), scopes=[s[0] for s in scopes]
@@ -133,8 +154,43 @@ class UserToken(ContentNegotiatedMethodView):
         return jsonify({}) # ok
 
 
+class B2AccessToken(ContentNegotiatedMethodView):
+
+    def __init__(self, *args, **kwargs):
+        """Constructor."""
+        super(B2SafeToken, self).__init__(
+            default_method_media_type={
+                'GET': 'application/json'
+            },
+            default_media_type='application/json',
+            *args, **kwargs)
+
+
+    @auth_required('token', 'session')
+    def get(self, **kwargs):
+        b2access_token = _get_b2access_token()
+        
+        # Should not happen since B2ACCESS is the only method to login
+        if b2access_token is None:
+            abort(404)
+
+        token_dict = {
+        'email':current_user.email,
+        'b2access_token':b2access_token[0]
+        }
+        response = jsonify(token_dict)
+        response.status_code = 200
+        return response
+
+
+def _get_b2access_token():
+    remote = current_app.extensions['invenio-oauthclient'].oauth.remote_apps['b2access']
+    token = token_getter(remote)
+    return token
+
 blueprint.add_url_rule('/', view_func=CurrentUser.as_view('current_user'))
 blueprint.add_url_rule('/tokens', view_func=UserTokenList.as_view('user_token_list'))
 blueprint.add_url_rule('/tokens/<token_id>', view_func=UserToken.as_view('user_token_item'))
+blueprint.add_url_rule('/tokens/b2access', view_func=B2AccessToken.as_view('b2access_token'))
 # register the flask_security logout endpoint
 blueprint.route('/logout/', endpoint='logout')(logout)

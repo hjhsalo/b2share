@@ -232,6 +232,10 @@ ACCOUNTS_REST_READ_ROLE_USERS_LIST_PERMISSION_FACTORY = allow_all
 ACCOUNTS_REST_READ_USERS_LIST_PERMISSION_FACTORY = \
     'b2share.modules.users.permissions:AccountSearchPermission'
 
+# permission to create a token for user (needed by 3rd party services)
+ACCOUNTS_REST_CREATE_USERS_API_TOKEN_LIST_PERMISSION_FACTORY = \
+    'b2share.modules.users.permissions:TokenCreatePermission'
+
 # permission to read user properties
 ACCOUNTS_REST_READ_USER_PROPERTIES_PERMISSION_FACTORY = \
     'b2share.modules.users.permissions:AccountReadPermission'
