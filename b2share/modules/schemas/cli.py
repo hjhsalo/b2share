@@ -58,6 +58,8 @@ def schemas():
 def init(verbose):
     """CLI command loading Root Schema files in the database."""
     try:
+        import wdb
+        wdb.set_trace()
         load_root_schemas(cli=True, verbose=verbose)
         db.session.commit()
     except RootSchemaAlreadyExistsError as e:
@@ -293,9 +295,23 @@ def community_schema_list_block_schema_versions(verbose, community, version=None
             key, props[key]['$ref']))
 
 
+def update_community_schema_root_schema_version(community, root_schema_version):
+    comm = get_community_by_name_or_id(community)
+    if not comm:
+        raise click.BadParameter("There is no community by this name or ID: %s" %
+                                community)
+    community_schema = CommunitySchema.get_community_schema(comm.id)
+    comm_schema_json = json.loads(community_schema.community_schema)
+    if 'properties' not in comm_schema_json.keys():
+        raise click.ClickException("""Invalid community schema
+            for community %s""" % community.name)
+    CommunitySchema.create_version(comm.id, comm_schema_json, root_schema_version)
+    db.session.commit()
+    click.secho("Succesfully updated root schema version", fg='green')
+
 
 # this function should be called from the communities' cli module
-def update_or_set_community_schema(community, json_file):
+def update_or_set_community_schema(community, json_file, root_schema_version=None):
     """Updates or sets the schema for a community.
 
     The complete schema of a community contains a copy of the root metadata
@@ -343,16 +359,16 @@ def update_or_set_community_schema(community, json_file):
             raise click.ClickException("""Multiple block schemas not supported.""")
         #we can by configuration also have a community schema that does not refer to a blockschema
         if len (comm_schema_json['properties']) == 0:
-            _create_community_schema(comm, schema_dict)
+            _create_community_schema(comm, schema_dict, root_schema_version)
         else:
-            _update_community_schema(comm, comm_schema_json, schema_dict)
+            _update_community_schema(comm, comm_schema_json, schema_dict, root_schema_version)
     except CommunitySchemaDoesNotExistError:
-        _create_community_schema(comm, schema_dict)
+        _create_community_schema(comm, schema_dict, root_schema_version)
     db.session.commit()
     click.secho("Succesfully processed new metadata schema", fg='green')
 
 
-def _update_community_schema(community, comm_schema_json, schema_dict):
+def _update_community_schema(community, comm_schema_json, schema_dict, root_schema_version=None):
     base_url = urlunsplit((
         current_app.config.get('PREFERRED_URL_SCHEME', 'http'),
         current_app.config['JSONSCHEMAS_HOST'],
@@ -373,10 +389,10 @@ def _update_community_schema(community, comm_schema_json, schema_dict):
         comm_schema_json['properties'][str(block_schema.id)] = {
             '$ref': block_schema_version_url,
         }
-        return CommunitySchema.create_version(community.id, comm_schema_json)
+        return CommunitySchema.create_version(community.id, comm_schema_json, root_schema_version)
+    
 
-
-def _create_community_schema(community, schema_dict):
+def _create_community_schema(community, schema_dict, root_schema_version=None):
     base_url = urlunsplit((
         current_app.config.get('PREFERRED_URL_SCHEME', 'http'),
         current_app.config['JSONSCHEMAS_HOST'],
@@ -402,5 +418,5 @@ def _create_community_schema(community, schema_dict):
             'required': [str(block_schema.id)],
         }
         click.secho(json.dumps(community_schema, indent=4))
-        result = CommunitySchema.create_version(community.id, community_schema)
+        result = CommunitySchema.create_version(community.id, community_schema, root_schema_version)
     return result

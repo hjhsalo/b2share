@@ -146,6 +146,16 @@ def edit(verbose, id, name, description, logo, clear_fields):
 @with_appcontext
 @click.argument('community')
 @click.argument('json_file')
-def set_schema(community, json_file):
+@click.argument('root_schema_version')
+def set_schema(community, json_file, root_schema_version):
     from b2share.modules.schemas.cli import update_or_set_community_schema
-    update_or_set_community_schema(community, json_file)
+    update_or_set_community_schema(community, json_file, root_schema_version)
+
+
+@communities.command()
+@with_appcontext
+@click.argument('community')
+@click.argument('root_schema_version')
+def update_root_schema(community, root_schema_version):
+    from b2share.modules.schemas.cli import update_community_schema_root_schema_version
+    update_community_schema_root_schema_version(community, root_schema_version)
