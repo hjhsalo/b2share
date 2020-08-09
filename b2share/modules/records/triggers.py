@@ -41,10 +41,10 @@ from .indexer import is_publication
 
 def register_triggers(app):
     # TODO(edima): replace this check with explicit permissions
-    before_record_update.connect(check_record_immutable_fields)
-    before_record_delete.connect(unindex_record_trigger)
-    after_record_update.connect(index_record_trigger)
-    after_record_insert.connect(index_record_trigger)
+    before_record_update.connect(check_record_immutable_fields, sender=app)
+    before_record_delete.connect(unindex_record_trigger, sender=app)
+    after_record_update.connect(index_record_trigger, sender=app)
+    after_record_insert.connect(index_record_trigger, sender=app)
 
 
 # TODO(edima): replace this check with explicit permissions
