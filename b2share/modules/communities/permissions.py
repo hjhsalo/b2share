@@ -25,8 +25,9 @@
 
 from functools import partial
 
-from invenio_access.permissions import DynamicPermission, \
-    ParameterizedActionNeed
+from invenio_access.permissions import ParameterizedActionNeed
+
+from b2share.modules.access.permissions import DynamicPermission
 
 CommunityReadActionNeed = partial(ParameterizedActionNeed, 'communities-read')
 """Action need for reading a community."""

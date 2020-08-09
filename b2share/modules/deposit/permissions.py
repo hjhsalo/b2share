@@ -32,7 +32,7 @@ from functools import partial
 from jsonpatch import apply_patch
 from flask_principal import UserNeed
 from invenio_access.permissions import (
-    superuser_access, ParameterizedActionNeed, DynamicPermission
+    superuser_access, ParameterizedActionNeed
 )
 from invenio_access.models import ActionUsers, ActionRoles
 from flask_security import current_user
@@ -43,6 +43,7 @@ from b2share.modules.deposit.api import generate_external_pids
 from flask import request, abort
 from b2share.modules.access.permissions import (AuthenticatedNeed,
                                                 OrPermissions, AndPermissions,
+                                                DynamicPermission,
                                                 StrictDynamicPermission)
 from b2share.modules.communities.api import Community
 from invenio_db import db

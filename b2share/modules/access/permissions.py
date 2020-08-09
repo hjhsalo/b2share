@@ -178,6 +178,27 @@ class OrPermissions(PermissionSet):
         return len(self.permissions) == 0 and self.allow_if_no_permissions
 
 
+class DynamicPermission(Permission):
+    """Represents set of required needs.
+    Works like :py:class:`~.Permission` except that any action not
+    allowed/restricted to any users, roles or system roles are allowed by
+    default instead of restricted.
+    .. warning::
+        This class is adopted from invenio-access <1.0.0 since it was 
+        removed there.
+        The class works significantly different from normal 
+        invenio-access.Permission class in that if ``ActionNeed`` 
+        or :py:data:`~.ParameterizedActionNeed` is not allowed or restricted
+        to any user or role then it is **ALLOWED** to anybody.
+    """
+
+    allow_by_default = True
+
+    def __init__(self, *args, **kwargs):
+        """Constructor."""
+        super(DynamicPermission, self).__init__(*args, **kwargs)
+
+
 def generic_need_factory(name, **kwargs):
     """Generic need factory using a JSON object as argument.
 
