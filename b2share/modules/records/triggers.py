@@ -48,7 +48,7 @@ def register_triggers(app):
 
 
 # TODO(edima): replace this check with explicit permissions
-def check_record_immutable_fields(record):
+def check_record_immutable_fields(sender, record):
     """Checks that the previous community and owner fields are preserved"""
     previous_md = record.model.json
     for field in ['community', '$schema']:
@@ -59,7 +59,7 @@ def check_record_immutable_fields(record):
             ])
 
 
-def index_record_trigger(record):
+def index_record_trigger(sender, record):
     """Index the given record if it is a publication."""
     if is_publication(record.model):
         # index the record synchronously as an asynchronous task will not
@@ -67,7 +67,7 @@ def index_record_trigger(record):
         RecordIndexer().index(record)
 
 
-def unindex_record_trigger(record):
+def unindex_record_trigger(sender, record):
     """Unindex the given record if it is a publication."""
     if is_publication(record.model):
         # The indexer requires that the record still exists in the database
