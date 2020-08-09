@@ -51,6 +51,7 @@ from invenio_search import current_search_client, current_search
 from sqlalchemy_utils.functions import create_database, drop_database
 from invenio_access.models import ActionRoles
 from invenio_access.permissions import superuser_access
+from invenio_app.config import APP_DEFAULT_SECURE_HEADERS
 from b2share.modules.communities.models import Community
 from b2share.modules.communities.api import Community as CommunityAPI
 from sqlalchemy.exc import ProgrammingError
@@ -73,14 +74,23 @@ sys.path.append(os.path.dirname(__file__))
 @pytest.yield_fixture(scope='session')
 def base_app():
     """Base uninitialized flask application fixture."""
-    from b2share.factory import create_api
+    from b2share.factory import create_app
 
     instance_path = tempfile.mkdtemp()
     os.environ.update(
         B2SHARE_INSTANCE_PATH=os.environ.get(
             'INSTANCE_PATH', instance_path),
     )
-    app = create_api(
+    
+    APP_DEFAULT_SECURE_HEADERS['content_security_policy'] = {}
+    APP_DEFAULT_SECURE_HEADERS['force_https'] = False
+    APP_DEFAULT_SECURE_HEADERS['session_cookie_secure'] = False
+
+    app = create_app(
+        APPLICATION_ROOT='/api',
+        DEBUG = True,
+        FLASK_ENV='development',
+        APP_DEFAULT_SECURE_HEADERS=APP_DEFAULT_SECURE_HEADERS,
         TESTING=True,
         SERVER_NAME='localhost:5000',
         JSONSCHEMAS_HOST='localhost:5000',
@@ -99,7 +109,7 @@ def base_app():
         CELERY_CACHE_BACKEND="memory",
         CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
         SUPPORT_EMAIL='support@eudat.eu',
-        PREFERRED_URL_SCHEME='https',
+        PREFERRED_URL_SCHEME='http',
         FILES_REST_STORAGE_FACTORY='b2share.modules.files.storage.b2share_storage_factory',
         FILES_REST_STORAGE_CLASS_LIST={
             'B': 'B2SafePid',
@@ -110,6 +120,7 @@ def base_app():
 
     # Disable most of alembic logging.
     logging.getLogger('alembic').setLevel(logging.CRITICAL)
+    #app.wsgi_app.mounts['/api']
     yield app
     shutil.rmtree(instance_path)
 

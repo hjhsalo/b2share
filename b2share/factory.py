@@ -88,11 +88,16 @@ created. It will be necessary at some point to refactor it.
 import os
 import sys
 
-from flask import Flask
+import pkg_resources
+
+#from flask import Flask
+from flask import current_app
 from invenio_base.app import create_app_factory
+from invenio_base.wsgi import create_wsgi_factory, wsgi_proxyfix
+from invenio_base.signals import app_created, app_loaded
 from invenio_config import create_conf_loader
-from werkzeug.wsgi import DispatcherMiddleware
-from werkzeug.contrib.fixers import ProxyFix
+# from werkzeug.wsgi import DispatcherMiddleware
+# from werkzeug.contrib.fixers import ProxyFix
 
 from . import config
 
@@ -104,52 +109,127 @@ instance_path = os.getenv(env_prefix + '_INSTANCE_PATH') or \
     os.path.join(sys.prefix, 'var', 'b2share-instance')
 """Instance path for B2Share."""
 
-
-def create_api(*args, **kwargs):
-    """Create Flask application providing B2SHARE REST API."""
-    app = create_app_factory(
-        'b2share',
-        config_loader=config_loader,
-        extension_entry_points=['invenio_base.api_apps'],
-        blueprint_entry_points=['invenio_base.api_blueprints'],
-        converter_entry_points=['invenio_base.api_converters'],
-        instance_path=instance_path,
-    )(*args, **kwargs)
-    return app
-
-
-def create_app(**kwargs):
-    """Create Flask application providing B2SHARE UI and REST API.abs
-
-    The REST API is provided by redirecting any request to another Flask
-    application created with :func:`~.create_api`.
-    """
-    # Create the REST API Flask application
-    api = create_api(**kwargs)
-    api.config.update(
-        APPLICATION_ROOT='/api'
-    )
-    app_ui = Flask(__name__,
-                   static_folder=os.environ.get(
+static_folder = os.environ.get(
                        'B2SHARE_UI_PATH',
-                       os.path.join(api.instance_path, 'static')),
-                   static_url_path='',
-                   instance_path=api.instance_path)
+                       os.path.join(instance_path, 'static'))
 
-    add_routes(app_ui)
+@app_created.connect
+def receiver_app_created(sender, app=None, **kwargs):
+    app.logger.info("Application created")
+    add_routes(app)
 
-    api.wsgi_app = DispatcherMiddleware(app_ui.wsgi_app, {
-        '/api': api.wsgi_app
-    })
-    if api.config.get('WSGI_PROXIES'):
-        wsgi_proxies = api.config.get('WSGI_PROXIES')
-        assert(wsgi_proxies > 0)
-        api.wsgi_app = ProxyFix(api.wsgi_app,
-                                num_proxies=api.config['WSGI_PROXIES'])
+@app_loaded.connect
+def receiver_app_loaded(sender, app=None, **kwargs):
+    app.logger.info("Application Loaded")
+    app.logger.info("Instance Path: {}".format(app.instance_path))
+    check_configuration(app.config, app.logger)
 
-    check_configuration(api.config, api.logger)
 
-    return api
+# def create_api(*args, **kwargs):
+#     """Create Flask application providing B2SHARE REST API."""
+#     app = create_app_factory(
+#         'b2share',
+#         config_loader=config_loader,
+#         extension_entry_points=['invenio_base.api_apps'],
+#         blueprint_entry_points=['invenio_base.api_blueprints'],
+#         converter_entry_points=['invenio_base.api_converters'],
+#         instance_path=instance_path,
+#     )(*args, **kwargs)
+#     return app
+
+
+# def create_app(**kwargs):
+#     """Create Flask application providing B2SHARE UI and REST API.abs
+
+#     The REST API is provided by redirecting any request to another Flask
+#     application created with :func:`~.create_api`.
+#     """
+#     # Create the REST API Flask application
+#     api = create_api(**kwargs)
+#     api.config.update(
+#         APPLICATION_ROOT='/api'
+#     )
+#     app_ui = Flask(__name__,
+#                    static_folder=os.environ.get(
+#                        'B2SHARE_UI_PATH',
+#                        os.path.join(api.instance_path, 'static')),
+#                    static_url_path='',
+#                    instance_path=api.instance_path)
+
+#     add_routes(app_ui)
+
+#     api.wsgi_app = DispatcherMiddleware(app_ui.wsgi_app, {
+#         '/api': api.wsgi_app
+#     })
+#     if api.config.get('WSGI_PROXIES'):
+#         wsgi_proxies = api.config.get('WSGI_PROXIES')
+#         assert(wsgi_proxies > 0)
+#         api.wsgi_app = ProxyFix(api.wsgi_app,
+#                                 num_proxies=api.config['WSGI_PROXIES'])
+
+#     check_configuration(api.config, api.logger)
+
+#     return api
+
+class TrustedHostsMixin(object):
+    """Mixin for reading trusted hosts from application config."""
+
+    @property
+    def trusted_hosts(self):
+        """Get list of trusted hosts."""
+        if current_app:
+            return current_app.config.get('APP_ALLOWED_HOSTS', None)
+
+
+def app_class():
+    """Create Flask application class.
+    Invenio-Files-REST needs to patch the Werkzeug form parsing in order to
+    support streaming large file uploads. This is done by subclassing the Flask
+    application class.
+    """
+    try:
+        pkg_resources.get_distribution('invenio-files-rest')
+        from invenio_files_rest.app import Flask as FlaskBase
+    except pkg_resources.DistributionNotFound:
+        from flask import Flask as FlaskBase
+
+    # Add Host header validation via APP_ALLOWED_HOSTS configuration variable.
+    class Request(TrustedHostsMixin, FlaskBase.request_class):
+        pass
+
+    class Flask(FlaskBase):
+        request_class = Request
+
+    return Flask
+
+
+create_api = create_app_factory(
+    'b2share',
+    config_loader=config_loader,
+    blueprint_entry_points=['invenio_base.api_blueprints'],
+    extension_entry_points=['invenio_base.api_apps'],
+    converter_entry_points=['invenio_base.api_converters'],
+    wsgi_factory=wsgi_proxyfix(),
+    instance_path=instance_path,
+    app_class=app_class(),
+)
+"""Flask application factory for Invenio REST API."""
+
+create_app = create_app_factory(
+    'b2share',
+    config_loader=config_loader,
+    blueprint_entry_points=['invenio_base.blueprints'],
+    extension_entry_points=['invenio_base.apps'],
+    converter_entry_points=['invenio_base.converters'],
+    wsgi_factory=wsgi_proxyfix(create_wsgi_factory({'/api': create_api})),
+    instance_path=instance_path,
+    static_folder=static_folder,
+    static_url_path='',
+    app_class=app_class(),
+)
+"""Flask application factory used for CLI, UI and API for combined UI + REST API.
+REST API is mounted under ``/api``.
+"""
 
 
 def add_routes(app_ui):

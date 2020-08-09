@@ -147,13 +147,16 @@ def records_rest_url_rules(endpoint, list_route=None, item_route=None,
     ]
 
 
-def create_blueprint(endpoints):
-    """Create Invenio-Deposit-REST blueprint."""
-    blueprint = Blueprint(
+blueprint = Blueprint(
         'b2share_deposit_rest',
         __name__,
         url_prefix='',
     )
+
+
+def create_blueprint(endpoints):
+    """Create Invenio-Deposit-REST blueprint."""
+    
     blueprint.errorhandler(PIDInvalidAction)(create_api_errorhandler(
         status=403, message='Invalid action'
     ))

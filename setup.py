@@ -167,11 +167,21 @@ setup(
             'invenio_oaiserver = invenio_oaiserver:InvenioOAIServer',
             'invenio_pidrelations = invenio_pidrelations:InvenioPIDRelations',
         ],
+        'invenio_base.apps': [
+            'b2share_communities = b2share.modules.communities.ext:B2ShareCommunities',
+            'b2share_upgrade = b2share.modules.upgrade:B2ShareUpgrade',
+            'b2share_schemas = b2share.modules.schemas:B2ShareSchemas',
+        ],
         'invenio_base.api_blueprints': [
             'invenio_oauthclient = invenio_oauthclient.views.client:blueprint',
             'b2share_communities = '
             'b2share.modules.communities.views:blueprint',
             'invenio_oaiserver = invenio_oaiserver.views.server:blueprint',
+        ],
+        'invenio_base.blueprints': [
+            'b2share_schemas = b2share.modules.schemas.views:blueprint',
+            'b2share_deposit = b2share.modules.deposit.views:blueprint',
+            'b2share_records = b2share.modules.records.views:blueprint',
         ],
         'invenio_db.models': [
             'b2share_communities = b2share.modules.communities.models',
