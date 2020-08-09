@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "b2share-dev"
+version = "0.1.1"
+description = ""
+authors = ["Jussi Steenari <jussi.steenari@csc.fi>", "Harri Hirvonsalo <harri.hirvonsalo@csc.fi>"]
+
+
+[tool.poetry.dependencies]
+
+python = "^3.6"
+invenio-oauth2server=">=1.0.1,<1.0.5"
+invenio-oauthclient=">=1.0.0,<1.1.0"
+invenio-records-files={version=">=1.0.0a9,<1.0.0a12",allow-prereleases = true}
+invenio-pidrelations={version="1.0.0a4",allow-prereleases = true}
+invenio-pidstore={version=">=1.0.0b2,<1.1.0",allow-prereleases = true}
+invenio-oaiserver={version=">=1.0.0a13,<1.1.0",allow-prereleases = true}
+invenio-marc21={version=">=1.0.0a3,<1.0.0a9",allow-prereleases = true}
+invenio-mail={version=">=1.0.0b1,<1.1.0",allow-prereleases = true}
+invenio-records-rest=">=1.1.0,<1.2.0"
+invenio-rest={version=">=1.0.0b1,<1.1.0",allow-prereleases = true}
+invenio-jsonschemas=">=1.0.0,<1.1.0"
+invenio-deposit={version=">=1.0.0a8,<1.0.0a9",allow-prereleases = true}
+invenio-accounts-rest={version="1.0.0a4",allow-prereleases = true}
+invenio-files-rest={version=">=1.0.0a22,<1.1.0",allow-prereleases = true}
+invenio-stats={version=">=1.0.0a8,<1.0.0a10",allow-prereleases = true}
+invenio = {version = "==3.0.2", extras = ["base", "postgresql", "auth", "metadata", "elasticsearch2" ]}
+werkzeug = "<1.0.0"
+email_validator = "^1.1.1"
+billiard = "^3.6.3"
+httplib2 = "^0.18.1"
+flask-login = "<0.5.0"
+jsonschema = "<3.0.0"
+click = "<7.0.0"
+#invenio[postgresql,elasticsearch2,base,auth,metadata] = "3.0.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
